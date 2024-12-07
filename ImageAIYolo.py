@@ -1,49 +1,35 @@
 
 import torch
-'''
-# Загрузка модели YOLOv5
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='C:\\Users\\Admin\\Desktop\\Ai_Opencv\\yolov5n.pt')
-
-# Выполнение детекции объектов на изображении
-results = model('C:\\Users\\Admin\\Desktop\\Ai_Opencv\\i.webp')
-
-# Сохранение результата
-results.save()
-
-# Вывод результатов в консоль
-print(results.pandas().xyxy[0])
-'''
-import torch
 import cv2
 
 # Загрузка модели YOLOv5
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='C:\\Users\\Admin\\Desktop\\Ai_Opencv\\yolov5n.pt')
 
-# Путь к видео
-video_path = 'C:\\Users\\Admin\\Desktop\\Ai_Opencv\\document_5377495910123068876.mp4'  # Укажите путь к видео
-output_video_path = 'C:\\Users\\Admin\\Desktop\\Ai_Opencv\\output_video.avi'  # Путь для сохранения результата
+# Инициализация веб-камеры (0 - первая камера, 1 - вторая, и т.д.)
+cap = cv2.VideoCapture(0)
 
-# Захват видео с указанного пути
-cap = cv2.VideoCapture(video_path)
-
-# Проверка открытия видео
+# Проверка открытия камеры
 if not cap.isOpened():
-    print("Ошибка: не удалось открыть видеофайл!")
+    print("Ошибка: Не удалось получить доступ к веб-камере!")
     exit()
 
-# Получение параметров видео для сохранения
+# Получение параметров камеры
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-# Инициализация видеопотока для записи
-fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Кодек для сохранения (например, XVID)
+# Вывод для сохранения обработанного видео (опционально)
+output_video_path = 'C:\\Users\\Admin\\Desktop\\Ai_Opencv\\webcam_output.avi'
+fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Кодек
 out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
+print("Нажмите 'q', чтобы завершить.")
+
 while True:
+    # Читаем кадр с веб-камеры
     ret, frame = cap.read()
     if not ret:
-        print("Обработка видео завершена.")
+        print("Ошибка: Не удалось получить кадр!")
         break
 
     # Выполняем детекцию объектов на текущем кадре
@@ -63,13 +49,13 @@ while True:
         text = f"{label} {confidence:.2f}"
         cv2.putText(frame, text, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-    # Сохраняем обработанный кадр в выходной файл
+    # Сохраняем обработанный кадр (опционально)
     out.write(frame)
 
     # Отображаем текущий кадр с результатами
-    cv2.imshow("Обнаружение объектов", frame)
+    cv2.imshow("Обнаружение объектов с веб-камеры", frame)
 
-    # Нажмите 'q', чтобы остановить обработку
+    # Нажмите 'q', чтобы завершить обработку
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
