@@ -1,0 +1,49 @@
+import cv2
+import torch
+
+# Загрузка модели YOLOv5
+model = torch.hub.load('ultralytics/yolov5', 'yolov5n')  # Используем YOLOv5n (наилегчайшая версия)
+
+# Захват видео с веб-камеры
+cap = cv2.VideoCapture(0)  # 0 означает первую подключённую веб-камеру
+
+# Проверяем, доступна ли камера
+if not cap.isOpened():
+    print("Ошибка: Не удалось открыть веб-камеру!")
+    exit()
+
+while True:
+    ret, frame = cap.read()  # Читаем кадр с камеры
+    if not ret:
+        print("Не удалось получить кадр!")
+        break
+
+    
+    results = model(frame)
+
+    
+    detections = results.pandas().xyxy[0] 
+    for _, row in detections.iterrows():
+        # Координаты прямоугольника
+        xmin, ymin, xmax, ymax = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
+        confidence = row['confidence']  # Уверенность детекции
+        label = row['name']  # Имя класса объекта
+
+        # Рисуем прямоугольник вокруг объекта
+        color = (0, 255, 0)  # Цвет рамки (зеленый)
+        cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
+
+        # Добавляем текст над объектом
+        text = f"{label} {confidence:.2f}"
+        cv2.putText(frame, text, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+    # Отображаем обработанное изображение
+    cv2.imshow("Обнаружение объектов", frame)
+
+    # Ожидание нажатия 'q' для выхода
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+
+cap.release()
+cv2.destroyAllWindows()
